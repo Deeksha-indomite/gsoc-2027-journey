@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GSoC 2027 Roadmap</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --card: #111118;
+    --border: #1e1e2e;
+    --accent: #f97316;
+    --accent2: #fb923c;
+    --green: #4ade80;
+    --blue: #60a5fa;
+    --purple: #a78bfa;
+    --yellow: #fbbf24;
+    --text: #e2e8f0;
+    --muted: #64748b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .hero {
+    position: relative;
+    padding: 60px 24px 40px;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 500px;
+    height: 300px;
+    background: radial-gradient(ellipse, rgba(249,115,22,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(249,115,22,0.3);
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+    background: rgba(249,115,22,0.05);
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 6vw, 64px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 12px;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 40px;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Phase tabs */
+  .tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 0 24px 16px;
+    scrollbar-width: none;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .tab {
+    flex-shrink: 0;
+    padding: 8px 20px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab:hover { border-color: var(--accent); color: var(--text); }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
+
+  /* Phase content */
+  .phase-container {
+    padding: 0 24px 80px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .phase { display: none; }
+  .phase.active { display: block; }
+
+  .phase-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding: 24px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .phase-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .ph-1 .phase-header::before { background: var(--green); }
+  .ph-2 .phase-header::before { background: var(--blue); }
+  .ph-3 .phase-header::before { background: var(--purple); }
+  .ph-4 .phase-header::before { background: var(--yellow); }
+  .ph-5 .phase-header::before { background: var(--accent); }
+
+  .phase-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    opacity: 0.15;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .phase-info h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .phase-info p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .phase-meta {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .meta-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    border: 1px solid;
+  }
+
+  .meta-tag.duration { border-color: rgba(100,116,139,0.4); color: var(--muted); }
+  .meta-tag.hours { border-color: rgba(249,115,22,0.4); color: var(--accent); }
+
+  /* Week blocks */
+  .week {
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--card);
+  }
+
+  .week-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .week-header:hover { background: rgba(255,255,255,0.04); }
+  .week-header.open { border-bottom-color: var(--border); }
+
+  .week-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .week-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    flex: 1;
+  }
+
+  .week-arrow {
+    font-size: 12px;
+    color: var(--muted);
+    transition: transform 0.2s;
+  }
+
+  .week-header.open .week-arrow { transform: rotate(180deg); }
+
+  .week-body {
+    display: none;
+    padding: 20px;
+  }
+
+  .week-body.open { display: block; }
+
+  /* Day rows */
+  .day {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(30,30,46,0.8);
+    align-items: start;
+  }
+
+  .day:last-child { border-bottom: none; }
+
+  .day-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    padding-top: 2px;
+  }
+
+  .day-label strong {
+    display: block;
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .day-tasks { display: flex; flex-direction: column; gap: 6px; }
+
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #cbd5e1;
+  }
+
+  .task-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .dot-learn { background: var(--green); }
+  .dot-build { background: var(--blue); }
+  .dot-practice { background: var(--purple); }
+  .dot-os { background: var(--accent); }
+  .dot-rest { background: var(--muted); }
+  .dot-aws { background: var(--yellow); }
+
+  /* Resource pills */
+  .resources {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .resources-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .pill {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 100px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .pill.free { border-color: rgba(74,222,128,0.3); color: var(--green); }
+  .pill.important { border-color: rgba(249,115,22,0.3); color: var(--accent); }
+
+  /* Milestone banner */
+  .milestone {
+    margin: 24px 0;
+    padding: 16px 20px;
+    border-radius: 12px;
+    background: rgba(249,115,22,0.05);
+    border: 1px solid rgba(249,115,22,0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .milestone-icon { font-size: 20px; }
+
+  .milestone-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent2);
+  }
+
+  .milestone-text span {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 0 24px;
+    margin-bottom: 24px;
+    justify-content: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  @media (max-width: 480px) {
+    .day { grid-template-columns: 80px 1fr; }
+    h1 { letter-spacing: -1px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="badge">GSoC 2027 Prep Roadmap</div>
+  <div style="font-family:'DM Mono',monospace;font-size:13px;color:#f97316;margin-bottom:8px;letter-spacing:2px;">DEEKSHA SR</div>
+  <h1><span>10-Month</span><br>Battle Plan</h1>
+  <p class="subtitle">Complete beginner → GSoC contributor · 2-3 hrs/day</p>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">300+</div>
+      <div class="stat-label">Days</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">5</div>
+      <div class="stat-label">Phases</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">Mar '27</div>
+      <div class="stat-label">Apply</div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Card -->
+<div style="max-width:900px;margin:0 auto 24px;padding:0 24px;">
+  <div style="background:#111118;border:1px solid #1e1e2e;border-radius:16px;padding:20px 24px;display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between;">
+    <div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">Candidate</div>
+      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#f97316;">Deeksha SR</div>
+      <div style="font-size:12px;color:#64748b;margin-top:4px;">1st Year Engineering · Complete Beginner</div>
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:#64748b;margin-bottom:4px;">START</div>
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;">May 2026</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:#64748b;margin-bottom:4px;">GOAL</div>
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#4ade80;">GSoC 2027</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Progress Tracker -->
+<div style="max-width:900px;margin:0 auto 24px;padding:0 24px;">
+  <div style="background:#111118;border:1px solid #1e1e2e;border-radius:16px;padding:20px 24px;">
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;">My Progress Checklist</div>
+    <div style="display:flex;flex-direction:column;gap:10px;" id="checklist">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:#cbd5e1;">
+        <input type="checkbox" onchange="saveProgress()" style="accent-color:#f97316;width:16px;height:16px;"> Python installed &amp; first program written
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:#cbd5e1;">
+        <input type="checkbox" onchange="saveProgress()" style="accent-color:#f97316;width:16px;height:16px;"> GitHub account created &amp; first repo pushed
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:#cbd5e1;">
+        <input type="checkbox" onchange="saveProgress()" style="accent-color:#f97316;width:16px;height:16px;"> 3 projects on GitHub ✅
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:#cbd5e1;">
+        <input type="checkbox" onchange="saveProgress()" style="accent-color:#f97316;width:16px;height:16px;"> AWS Educate account created
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:#cbd5e1;">
+        <input type="checkbox" onchange="saveProgress()" style="accent-color:#f97316;width:16px;height:16px;"> AWS Cloud Practitioner certified
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:#cbd5e1;">
+        <input type="checkbox" onchange="saveProgress()" style="accent-color:#f97316;width:16px;height:16px;"> First open source PR merged 🎉
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:#cbd5e1;">
+        <input type="checkbox" onchange="saveProgress()" style="accent-color:#f97316;width:16px;height:16px;"> 10+ PRs merged
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:#cbd5e1;">
+        <input type="checkbox" onchange="saveProgress()" style="accent-color:#f97316;width:16px;height:16px;"> Campus cloud workshop organized
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:#cbd5e1;">
+        <input type="checkbox" onchange="saveProgress()" style="accent-color:#f97316;width:16px;height:16px;"> Blog with 5+ posts published
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:#cbd5e1;">
+        <input type="checkbox" onchange="saveProgress()" style="accent-color:#f97316;width:16px;height:16px;"> AWS Ambassador application submitted
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:#cbd5e1;">
+        <input type="checkbox" onchange="saveProgress()" style="accent-color:#f97316;width:16px;height:16px;"> GSoC proposal submitted 🚀
+      </label>
+    </div>
+    <div style="margin-top:14px;height:6px;background:#1e1e2e;border-radius:100px;overflow:hidden;">
+      <div id="progress-bar" style="height:100%;background:linear-gradient(90deg,#f97316,#fbbf24);border-radius:100px;width:0%;transition:width 0.4s ease;"></div>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:#64748b;margin-top:6px;" id="progress-text">0 / 11 completed</div>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot dot-learn"></div> Learn</div>
+  <div class="legend-item"><div class="legend-dot dot-build"></div> Build</div>
+  <div class="legend-item"><div class="legend-dot dot-practice"></div> Practice</div>
+  <div class="legend-item"><div class="legend-dot dot-os"></div> Open Source</div>
+  <div class="legend-item"><div class="legend-dot dot-aws"></div> AWS</div>
+  <div class="legend-item"><div class="legend-dot dot-rest"></div> Rest/Review</div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showPhase(1, this)">Phase 1</div>
+  <div class="tab" onclick="showPhase(2, this)">Phase 2</div>
+  <div class="tab" onclick="showPhase(3, this)">Phase 3</div>
+  <div class="tab" onclick="showPhase(4, this)">Phase 4</div>
+  <div class="tab" onclick="showPhase(5, this)">Phase 5</div>
+</div>
+
+<div class="phase-container">
+
+  <!-- PHASE 1 -->
+  <div class="phase ph-1 active" id="phase-1">
+    <div class="phase-header">
+      <div class="phase-num">01</div>
+      <div class="phase-info">
+        <h2>Python Foundations</h2>
+        <p>Build the base. No shortcuts. By end of this phase you'll write real Python programs and understand Git.</p>
+        <div class="phase-meta">
+          <span class="meta-tag duration">May – Jun 2026 · 6 weeks</span>
+          <span class="meta-tag hours">2–3 hrs/day</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Week 1 -->
+    <div class="week">
+      <div class="week-header open" onclick="toggleWeek(this)">
+        <span class="week-label">Week 1</span>
+        <span class="week-title">Python Setup + Variables + Data Types</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body open">
+        <div class="day">
+          <div class="day-label"><strong>Day 1</strong>Mon</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Install Python + VS Code. Watch "What is Python?" (30 min)</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Print your name, age, city. Understand print() and strings</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 2</strong>Tue</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Variables: int, float, string, bool</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Write 10 variable assignments. Do basic math operations in Python</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 3</strong>Wed</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Input from user (input()), type casting</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Build: Simple calculator that adds two numbers entered by user</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 4</strong>Thu</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Strings: slicing, len(), upper(), lower(), f-strings</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Build: A program that takes your name and prints a personalized greeting</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 5</strong>Fri</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Lists: create, index, append, remove, loop</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Build: Shopping list program — add/remove/show items</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 6</strong>Sat</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Dictionaries: key-value pairs, get(), update()</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Build: Student grade dictionary — store and retrieve grades</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 7</strong>Sun</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-rest"></div>Review week 1. Redo any confusing exercises without looking at solutions</div>
+            <div class="task"><div class="task-dot dot-rest"></div>Write in a notebook: "What did I learn this week?" (5 things)</div>
+          </div>
+        </div>
+        <div class="resources">
+          <div class="resources-title">Resources</div>
+          <div class="pills">
+            <span class="pill free">CS50P – Harvard (free)</span>
+            <span class="pill free">Python.org Tutorial</span>
+            <span class="pill free">W3Schools Python</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Week 2 -->
+    <div class="week">
+      <div class="week-header" onclick="toggleWeek(this)">
+        <span class="week-label">Week 2</span>
+        <span class="week-title">Control Flow + Loops + Functions</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body">
+        <div class="day">
+          <div class="day-label"><strong>Day 8</strong>Mon</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>if / elif / else — conditional logic</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Build: Number guessing game (higher/lower hints)</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 9</strong>Tue</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>for loops: iterating lists, range()</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Print multiplication table, sum of 1–100</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 10</strong>Wed</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>while loops + break + continue</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Build: Login system with 3 attempts using while loop</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 11</strong>Thu</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Functions: def, parameters, return values</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Write 5 functions: add, subtract, is_even, greet, celsius_to_fahrenheit</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 12</strong>Fri</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Scope, default arguments, *args</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Build: BMI calculator using functions</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 13</strong>Sat</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-build"></div>Mini project: Build a "Contact Book" — add, search, delete contacts using lists + dicts + functions</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 14</strong>Sun</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-rest"></div>Review + Solve 5 easy problems on HackerRank (Python track)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Week 3 -->
+    <div class="week">
+      <div class="week-header" onclick="toggleWeek(this)">
+        <span class="week-label">Week 3</span>
+        <span class="week-title">Files + Error Handling + Modules</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body">
+        <div class="day">
+          <div class="day-label"><strong>Day 15</strong>Mon</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Reading and writing files (open, read, write, with statement)</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Save your contact book data to a .txt file</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 16</strong>Tue</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Try/except — handle errors gracefully</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Add error handling to calculator (divide by zero, wrong input)</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 17</strong>Wed</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Importing modules: math, random, datetime</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Build: Random quiz generator using random module</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 18</strong>Thu</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>pip — installing external libraries. Install requests</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Fetch a joke from a free API using requests library</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 19</strong>Fri</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>List comprehensions + lambda functions (shortcuts)</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Rewrite previous loops using comprehensions</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 20</strong>Sat</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-build"></div>Project: Weather CLI — fetch and display weather for any city using a free API</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 21</strong>Sun</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-rest"></div>Rest + 5 more HackerRank problems</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Week 4 -->
+    <div class="week">
+      <div class="week-header" onclick="toggleWeek(this)">
+        <span class="week-label">Week 4</span>
+        <span class="week-title">Git + GitHub Basics</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body">
+        <div class="day">
+          <div class="day-label"><strong>Day 22</strong>Mon</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>What is Git? Why version control? Install Git</div>
+            <div class="task"><div class="task-dot dot-practice"></div>git init, git add, git commit on your contact book project</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 23</strong>Tue</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Create GitHub account. Push your first repo</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Push weather CLI project to GitHub. Write a README.md</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 24</strong>Wed</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Branching: git branch, git checkout, git merge</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Create a feature branch, add a feature, merge back</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 25</strong>Thu</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Forking + Pull Requests — the open source workflow</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Fork a classmate's or friend's repo, make a change, open PR</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 26</strong>Fri</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Markdown: write a proper README with badges, screenshots</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Polish your GitHub profile README</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 27</strong>Sat</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-aws"></div>Sign up for AWS Educate (awseducate.com) — free with college email</div>
+            <div class="task"><div class="task-dot dot-aws"></div>Complete "Cloud Computing 101" badge on AWS Educate</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Day 28</strong>Sun</div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-rest"></div>Week review. Your GitHub should now have 2 projects public</div>
+          </div>
+        </div>
+        <div class="resources">
+          <div class="resources-title">Resources</div>
+          <div class="pills">
+            <span class="pill free">Git Handbook (GitHub)</span>
+            <span class="pill free">learngitbranching.js.org</span>
+            <span class="pill important">AWS Educate – free signup</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Week 5-6 summary -->
+    <div class="week">
+      <div class="week-header" onclick="toggleWeek(this)">
+        <span class="week-label">Week 5–6</span>
+        <span class="week-title">OOP + 2 Portfolio Projects</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body">
+        <div class="day">
+          <div class="day-label"><strong>Days 29–31</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Classes, objects, __init__, methods, inheritance</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Rewrite contact book using a Contact class</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Days 32–35</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-build"></div>Project 1: To-Do CLI app with file persistence + OOP structure</div>
+            <div class="task"><div class="task-dot dot-build"></div>Push to GitHub with clean README and commit history</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Days 36–40</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-build"></div>Project 2: Something YOU care about from bio background — e.g. DNA sequence analyzer, calorie tracker, medicine reminder</div>
+            <div class="task"><div class="task-dot dot-aws"></div>Complete 2 more AWS Educate badges (Storage, Networking basics)</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Days 41–42</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-rest"></div>Phase 1 review. Solve 15 total problems on HackerRank Python track</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="milestone">
+      <div class="milestone-icon">🏁</div>
+      <div class="milestone-text">
+        Phase 1 Complete — End of June 2026
+        <span>You know Python, Git, and have 3 projects on GitHub. AWS Educate account active.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase ph-2" id="phase-2">
+    <div class="phase-header">
+      <div class="phase-num">02</div>
+      <div class="phase-info">
+        <h2>Explore + Deepen Skills</h2>
+        <p>Pick a direction. Try Data Science or Web. Start looking at open source orgs. Get AWS Cloud Practitioner certified.</p>
+        <div class="phase-meta">
+          <span class="meta-tag duration">Jul – Aug 2026 · 8 weeks</span>
+          <span class="meta-tag hours">2–3 hrs/day</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="week">
+      <div class="week-header open" onclick="toggleWeek(this)">
+        <span class="week-label">Week 7–8</span>
+        <span class="week-title">Data Science Track (Try it out)</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body open">
+        <div class="day">
+          <div class="day-label"><strong>Days 43–44</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Install Jupyter Notebook. Learn NumPy basics — arrays, operations</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Days 45–47</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Pandas: load CSV, filter rows, group by, basic stats</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Analyze a free dataset (Kaggle titanic or COVID data)</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Days 48–49</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Matplotlib: line charts, bar charts, scatter plots</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Visualize your dataset — 3 different charts</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Days 50–56</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-build"></div>Mini project: Analyze COVID or population data for India. Create charts. Push notebook to GitHub</div>
+            <div class="task"><div class="task-dot dot-learn"></div>Optional: Try web dev with Flask (2 days) to see if you prefer it</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="week">
+      <div class="week-header" onclick="toggleWeek(this)">
+        <span class="week-label">Week 9–10</span>
+        <span class="week-title">AWS Cloud Practitioner Prep</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body">
+        <div class="day">
+          <div class="day-label"><strong>Days 57–63</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-aws"></div>Study AWS CCP: EC2, S3, IAM, RDS, Lambda — 1 service/day</div>
+            <div class="task"><div class="task-dot dot-aws"></div>Use free tier: Launch your first EC2 instance. Host a static website on S3</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Days 64–70</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-aws"></div>Practice 50 CCP exam questions daily (ExamTopics / Tutorials Dojo free)</div>
+            <div class="task"><div class="task-dot dot-aws"></div>Watch Stephane Maarek's CCP course (Udemy — buy on sale for ₹499)</div>
+          </div>
+        </div>
+        <div class="resources">
+          <div class="resources-title">Resources</div>
+          <div class="pills">
+            <span class="pill free">AWS Skill Builder (free)</span>
+            <span class="pill free">ExamTopics CCP (free)</span>
+            <span class="pill important">Maarek CCP Course (₹499 on sale)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="week">
+      <div class="week-header" onclick="toggleWeek(this)">
+        <span class="week-label">Week 11–14</span>
+        <span class="week-title">Open Source Exploration + First Contributions</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body">
+        <div class="day">
+          <div class="day-label"><strong>Days 71–77</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-os"></div>Browse gsoc.github.io — look at orgs from last 3 years. Shortlist 5 that interest you</div>
+            <div class="task"><div class="task-dot dot-os"></div>Read their README, issues, and CONTRIBUTING.md files</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Days 78–84</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-os"></div>Pick 1 org. Set up their dev environment locally. Run the project</div>
+            <div class="task"><div class="task-dot dot-os"></div>Filter GitHub issues by "good first issue" or "beginner friendly"</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Days 85–98</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-os"></div>Fix your first bug or improve docs. Open a Pull Request (even tiny ones count!)</div>
+            <div class="task"><div class="task-dot dot-os"></div>Join their Discord/mailing list. Introduce yourself. Ask thoughtful questions</div>
+            <div class="task"><div class="task-dot dot-aws"></div>Apply for AWS Educate Student Ambassador (Q1 2027 — start building portfolio now)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="milestone">
+      <div class="milestone-icon">🏁</div>
+      <div class="milestone-text">
+        Phase 2 Complete — End of August 2026
+        <span>AWS CCP exam taken. First open source PR merged. Direction chosen (data/web/bio). 5 GitHub projects.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase ph-3" id="phase-3">
+    <div class="phase-header">
+      <div class="phase-num">03</div>
+      <div class="phase-info">
+        <h2>Go Deep + Build Credibility</h2>
+        <p>Pick your GSoC org. Become a regular contributor. Build a stronger project. Get known in the community.</p>
+        <div class="phase-meta">
+          <span class="meta-tag duration">Sep – Nov 2026 · 12 weeks</span>
+          <span class="meta-tag hours">2–3 hrs/day</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="week">
+      <div class="week-header open" onclick="toggleWeek(this)">
+        <span class="week-label">Week 15–18</span>
+        <span class="week-title">Deepen Python + Learn Testing</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body open">
+        <div class="day">
+          <div class="day-label"><strong>Days 99–105</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Advanced Python: decorators, generators, context managers, type hints</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Rewrite one of your old projects using these concepts</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Days 106–112</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-learn"></div>Unit testing with pytest — write tests for your own functions</div>
+            <div class="task"><div class="task-dot dot-practice"></div>Add tests to your weather CLI and contact book projects</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Days 113–126</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-os"></div>Target org: Solve 3–5 issues. Each PR should be non-trivial (not just typos)</div>
+            <div class="task"><div class="task-dot dot-build"></div>Build a medium project (500+ lines): something related to your org's domain</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="week">
+      <div class="week-header" onclick="toggleWeek(this)">
+        <span class="week-label">Week 19–26</span>
+        <span class="week-title">Consistent Contribution + Community</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body">
+        <div class="day">
+          <div class="day-label"><strong>Every week</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-os"></div>Submit at least 1 PR per week to your target org</div>
+            <div class="task"><div class="task-dot dot-os"></div>Participate in discussions, review others' PRs, answer questions in forums</div>
+            <div class="task"><div class="task-dot dot-build"></div>Write a blog post about something you learned (dev.to or hashnode — free)</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Oct–Nov</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-os"></div>Reach out to 1–2 mentors in your org. Share what you've built. Ask for feedback</div>
+            <div class="task"><div class="task-dot dot-aws"></div>Organize a small AWS/cloud workshop at your college — key for AWS Ambassador app</div>
+          </div>
+        </div>
+        <div class="resources">
+          <div class="resources-title">Resources</div>
+          <div class="pills">
+            <span class="pill free">dev.to (free blogging)</span>
+            <span class="pill free">Real Python (advanced topics)</span>
+            <span class="pill important">Your org's Discord/Mailing list</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="milestone">
+      <div class="milestone-icon">🏁</div>
+      <div class="milestone-text">
+        Phase 3 Complete — End of November 2026
+        <span>10+ merged PRs. Known by at least 1 mentor. Blog with 5+ posts. College workshop done.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase ph-4" id="phase-4">
+    <div class="phase-header">
+      <div class="phase-num">04</div>
+      <div class="phase-info">
+        <h2>Proposal Prep + AWS Ambassador</h2>
+        <p>Draft your GSoC proposal. Apply for AWS Ambassador. Keep contributing.</p>
+        <div class="phase-meta">
+          <span class="meta-tag duration">Dec 2026 – Feb 2027 · 10 weeks</span>
+          <span class="meta-tag hours">2–3 hrs/day</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="week">
+      <div class="week-header open" onclick="toggleWeek(this)">
+        <span class="week-label">Dec 2026</span>
+        <span class="week-title">Draft Proposal + Study Org Codebase Deep</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body open">
+        <div class="day">
+          <div class="day-label"><strong>Week 1–2</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-os"></div>Read ALL of your org's GSoC project ideas page. Pick 1–2 projects</div>
+            <div class="task"><div class="task-dot dot-os"></div>Read the code files related to your chosen project. Understand architecture</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Week 3–4</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-os"></div>Write a rough proposal draft: problem, approach, weekly timeline, deliverables</div>
+            <div class="task"><div class="task-dot dot-os"></div>Share draft with mentor. Incorporate feedback. Repeat</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="week">
+      <div class="week-header" onclick="toggleWeek(this)">
+        <span class="week-label">Jan 2027</span>
+        <span class="week-title">AWS Ambassador Application + Proposal Polish</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body">
+        <div class="day">
+          <div class="day-label"><strong>Early Jan</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-aws"></div>AWS Educate Ambassador applications open (Q1). Submit your application</div>
+            <div class="task"><div class="task-dot dot-aws"></div>Your application needs: CCP cert, campus events organized, blog posts, AWS projects</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>All of Jan</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-os"></div>Continue weekly PRs. Focus on proposal-related areas of codebase</div>
+            <div class="task"><div class="task-dot dot-os"></div>Refine proposal: be specific with week-by-week milestones and risk mitigation</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="week">
+      <div class="week-header" onclick="toggleWeek(this)">
+        <span class="week-label">Feb 2027</span>
+        <span class="week-title">Final Proposal Refinement</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body">
+        <div class="day">
+          <div class="day-label"><strong>All of Feb</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-os"></div>Orgs get accepted to GSoC (~Feb 27). Confirm your org is in. Adjust proposal if needed</div>
+            <div class="task"><div class="task-dot dot-os"></div>Get proposal reviewed by mentor at least 2–3 times</div>
+            <div class="task"><div class="task-dot dot-build"></div>Make a small proof-of-concept demo related to your proposal. Include link in proposal</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="milestone">
+      <div class="milestone-icon">🏁</div>
+      <div class="milestone-text">
+        Phase 4 Complete — End of February 2027
+        <span>AWS Ambassador application submitted. Proposal reviewed 3+ times. Demo ready.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 5 -->
+  <div class="phase ph-5" id="phase-5">
+    <div class="phase-header">
+      <div class="phase-num">05</div>
+      <div class="phase-info">
+        <h2>Apply + Wait + Prepare</h2>
+        <p>Submit your proposal. Keep contributing. Prepare for the coding period if accepted.</p>
+        <div class="phase-meta">
+          <span class="meta-tag duration">Mar – May 2027</span>
+          <span class="meta-tag hours">2–3 hrs/day</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="week">
+      <div class="week-header open" onclick="toggleWeek(this)">
+        <span class="week-label">Mar 24 – Apr 8</span>
+        <span class="week-title">Application Window — SUBMIT</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body open">
+        <div class="day">
+          <div class="day-label"><strong>Mar 24</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-os"></div>Applications open on gsoc.google.com — submit your polished proposal</div>
+            <div class="task"><div class="task-dot dot-os"></div>You can submit up to 3 proposals (to different orgs). Max 1 gets accepted</div>
+          </div>
+        </div>
+        <div class="day">
+          <div class="day-label"><strong>Apr 1–8</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-os"></div>Keep contributing even after submitting. Mentors notice post-submission activity</div>
+            <div class="task"><div class="task-dot dot-os"></div>Respond quickly to any mentor questions or feedback requests</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="week">
+      <div class="week-header" onclick="toggleWeek(this)">
+        <span class="week-label">Apr – May 8</span>
+        <span class="week-title">Wait Period + Keep Coding</span>
+        <span class="week-arrow">▼</span>
+      </div>
+      <div class="week-body">
+        <div class="day">
+          <div class="day-label"><strong>Apr–May</strong></div>
+          <div class="day-tasks">
+            <div class="task"><div class="task-dot dot-os"></div>Don't stop contributing. Orgs rank proposals — activity matters till the end</div>
+            <div class="task"><div class="task-dot dot-build"></div>Use this time to learn tools/tech you'll need for your project</div>
+            <div class="task"><div class="task-dot dot-rest"></div>Results announced May 8, 2027 🎉</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="milestone">
+      <div class="milestone-icon">🎯</div>
+      <div class="milestone-text">
+        Goal: May 8, 2027 — GSoC Accepted
+        <span>If rejected: you'll have 10+ months of skills, a strong GitHub, AWS cert, and OS contributions. Try again next year or find a great internship with what you've built.</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function saveProgress() {
+    const boxes = document.querySelectorAll('#checklist input[type="checkbox"]');
+    const checked = [...boxes].filter(b => b.checked).length;
+    const pct = Math.round((checked / boxes.length) * 100);
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('progress-text').textContent = checked + ' / ' + boxes.length + ' completed';
+  }
+
+  function showPhase(num, tabEl) {
+    document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('phase-' + num).classList.add('active');
+    tabEl.classList.add('active');
+  }
+
+  function toggleWeek(headerEl) {
+    const body = headerEl.nextElementSibling;
+    headerEl.classList.toggle('open');
+    body.classList.toggle('open');
+  }
+</script>
+
+</body>
+</html>
